@@ -1,0 +1,15 @@
+Get started with FuzzyRecord
+
+1) Create a vhost in your chosen webserver, pointing at the htdocs folder. Apache example:
+
+<VirtualHost *:80>
+    ServerAdmin ben@allseeing-i.com
+    DocumentRoot "/Users/ben/Sites/FuzzyRecord/htdocs"
+    ServerName fuzzytest
+</VirtualHost>
+
+2) Copy config/config.default.php to config/config.php and point it at your database
+
+Documentation is available at:
+
+http://allseeing-i.com/FuzzyRecord
