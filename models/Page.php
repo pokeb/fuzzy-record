@@ -1,5 +1,10 @@
 <?php
 
+/*
+An example class demonstrating the sorter field type
+In this example, Pages with the same section will have a position that can be used to display them in order
+*/
+
 class Page extends FuzzyRecord {
 	
 	static protected $table = 'page';

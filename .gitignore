@@ -1,2 +1,3 @@
 .DS_Store
 config/config.php
+htdocs/documents/*

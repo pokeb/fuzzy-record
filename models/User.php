@@ -1,5 +1,10 @@
 <?php
 
+/*
+An example class demonstrating how you might model a user object
+It demonstrates the has_many relationship type, see the UserLogin and Page models for examples of the reverse of this relationship
+*/
+
 class User extends FuzzyRecord {
 	
 	static protected $table = 'user';

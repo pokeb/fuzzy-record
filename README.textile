@@ -4,26 +4,33 @@ INTRO
 Documentation is available "here":http://allseeing-i.com/FuzzyRecord.
 
 h3. What is FuzzyRecord?
+
 FuzzyRecord is an Object-Relational-Mapping (ORM) system for PHP applications, based on the Active record design pattern, most famously used in Ruby On Rails. It has a friendly API leveraging some of the new features in PHP 5.3 behind the scenes.
 
 h3. What is FuzzyRecord not?
+
 FuzzyRecord is NOT an MVC framework for PHP. It only provides a mechanism for storing an querying model objects (objects that store your application's data).
 
 h3. Important note
+
 FuzzyRecord should be considered a work in progress. Some features are incomplete, and it will contain bugs. The API is bound to change in some places in the future. Use at your own risk!
 
 h3. Requirements
+
 * PHP 5.3+ (Earlier versions are NOT supported)
 * PDO-MySQL
 * MySQL database (Postgres + other databases coming soon!)
 
 h3. Optional
+
 * Memcache PHP extension and server
 
 h3. Main features
+
 * Friendly Rails-like API (eg: $user->photos, User::find_by_email() etc)
 * Simple setup - many models will need no logic
 * Support for property validation (length, regex, email addresses etc)
+* File properties for storing files on a local disk
 * Handles relationships between objects, including cascade updates / deletes (currently one_to_many and belongs_to are supported)
 * Can be used with auto increment primary keys as well as non-integer and composite primary keys
 * Can cache model data in memory using a temporary store, and / or a persistent Memcached store 
@@ -33,10 +40,10 @@ h3. Main features
 * Includes lots of unit tests
 
 h3. Coming soon
+
 * Better documentation
 * Write more tests
 * Hashed password fields
-* File fields (for local file storage)
 * Many to many relationships without a joining table model
 * Full-text searching
 * Date handling - these are left up the the db at the moment
@@ -44,5 +51,6 @@ h3. Coming soon
 * Postgres support, other databases (SQLite?)
 
 h3. Further future
+
 * DB-native foreign key constraints
 * Auto-generated admin system

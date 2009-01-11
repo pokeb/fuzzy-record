@@ -1,5 +1,10 @@
 <?php
 
+/*
+An example class demonstrating the belongs_to relationship
+See also the User example class to see the reverse of this relationship
+*/
+
 class UserLogin extends FuzzyRecord {
 
 	static protected $table = 'user_login';

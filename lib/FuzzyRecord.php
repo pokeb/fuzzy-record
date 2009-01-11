@@ -99,9 +99,11 @@ CRUD Functions
 		$i=0;
 		foreach (static::$properties as $name => $info) {
 			$i++;
-			$properties_to_write .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
-			if ($i<count(static::$properties)) {
-				$properties_to_write .= ", ";
+			if (!in_array("file",$info)) {
+				$properties_to_write .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
+				if ($i<count(static::$properties)) {
+					$properties_to_write .= ", ";
+				}
 			}
 
 		}
@@ -113,14 +115,18 @@ CRUD Functions
 		$i=0;
 		foreach (static::$properties as $name => $info) {
 			$i++;
-			$properties_sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
-			if ($i<count(static::$properties)) {
-				$properties_sql .= ", ";
+			if (!in_array("file",$info)) {
+				$properties_sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
+				if ($i<count(static::$properties)) {
+					$properties_sql .= ", ";
+				}
 			}
 		}
 		
 		foreach (static::$properties as $name => $info) {
-			$statement->bind_value(":$name",static::value_for_database($name,$this->$name));
+			if (!in_array("file",$info)) {
+				$statement->bind_value(":$name",static::value_for_database($name,$this->$name));
+			}
 		}
 		foreach ($this->original_key_values as $name => $value) {
 			$statement->bind_value(":_original_$name",static::value_for_database($name,$this->$name));
@@ -167,6 +173,7 @@ CRUD Functions
 			}
 			
 		}
+		$this->write_files();
 		$this->commit_dependent_objects();
 		$this->set_primary_key_values();
 		$this->store_in_memory_cache();
@@ -194,7 +201,7 @@ CRUD Functions
 		$i=0;
 		foreach (static::$properties as $name => $info) {
 			$i++;
-			if (!in_array("auto_increment",$info)) {
+			if (!in_array("auto_increment",$info) && !in_array("file",$info)) {
 				$properties_sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark;
 				$values_sql .= ":$name";
 				if ($i<count(static::$properties)) {
@@ -208,7 +215,7 @@ CRUD Functions
 		
 	
 		foreach (static::$properties as $name => $info) {
-			if (!in_array("auto_increment",$info)) {
+			if (!in_array("auto_increment",$info) && !in_array("file",$info)) {
 				$statement->bind_value(":$name",static::value_for_database($name,$this->$name));
 			}
 		}
@@ -222,6 +229,8 @@ CRUD Functions
 				$this->$key = DB::last_insert_id();
 			}
 		}
+		
+		$this->write_files();
 		$this->commit_dependent_objects();			
 		$this->set_primary_key_values();
 		$this->store_in_memory_cache();
@@ -229,6 +238,64 @@ CRUD Functions
 		
 		DB::commit_implicit_transaction();
 		return true;
+	}
+	
+	protected function delete_files() {
+		foreach (static::$properties as $name => $info) {
+			if (in_array("file",$info)) {
+				$file = $this->$name;
+				// See if file has been set
+				if ((!is_object($file) && $file == "")) {
+					continue;
+				}
+				if (!is_object($file) || !is_a($file,"File")) {
+					throw new FuzzyRecordException("The value of $name is not a File");
+				}
+				$file->delete();
+			}
+		}
+	}
+	
+	protected function write_files() {
+		foreach (static::$properties as $name => $info) {
+			if (in_array("file",$info)) {
+				$file = $this->$name;
+				
+				// See if file has been set
+				if ((!is_object($file) && $file == "")) {
+					continue;
+				}
+				if (!is_object($file) || !is_a($file,"File")) {
+					throw new FuzzyRecordException("The value of $name is not a File");
+				}
+				
+				$class = get_class($this);
+					
+				if (!array_key_exists("save_path",$info)) {
+					throw new FuzzyRecordException("$class does not define a save_path for the File property $field");
+				}
+				$save_directory = $info['save_path'];
+				
+				$reflection_obj = new ReflectionClass($class); 
+				$method = $name."_file_name";
+				if ($reflection_obj->hasMethod($method)) {
+					$file_name = $this->$method();
+				} else {
+					$file_name = $file->name();
+				}
+
+		
+				$file->write($save_directory."/".$file_name);
+				
+				$sql = "update ".static::$table." set ".DB::$db_quote_mark.$name.DB::$db_quote_mark."= :file_name where ".$this->where_for_original_keys();
+				$statement = DB::prepare($sql);
+				foreach ($this->original_key_values as $key_name => $value) {
+					$statement->bind_value(":_original_$key_name",static::value_for_database($key_name,$this->$key_name));
+				}
+				$statement->bind_value(":file_name",$file_name);
+				$statement->execute();
+			}
+		}	
 	}
 	
 	// Save an object to the database in the appropriate manner depending on whether it has been written previously or not
@@ -389,6 +456,14 @@ CRUD Functions
 	
 	static protected function value_from_database($field,$value) {
 		switch (static::field_type($field)) {
+			case "file":
+				$file_properties = static::$properties[$field];
+				if (!array_key_exists("save_path",$file_properties)) {
+					$class = get_called_class();
+					throw new FuzzyRecordException("$class does not define a save_path for the File property $name");
+				}
+				return new File($file_properties['save_path']."/".$value);
+	
 			case "boolean":
 				if ($value === "0" || $value == "f") {
 					return false;			
@@ -441,7 +516,7 @@ CRUD Functions
 			throw new FuzzyRecordException("Property '$field' not found");
 		}
 		$options = static::$properties[$field];
-		$field_types = array("integer","sorter","boolean","date_with_time","date","time","email_address","password","varchar","text","enum");
+		$field_types = array("file","integer","sorter","boolean","date_with_time","date","time","email_address","password","varchar","text","enum");
 		foreach ($field_types as $type) {
 			if (in_array($type, $options) || key_exists($type,$options)) {
 				return $type;
@@ -546,6 +621,8 @@ CRUD Functions
 		$sql .= ") ENGINE=InnoDB default charset=utf8 collate=utf8_unicode_ci; ";
 		return $sql;
 	}
+	
+
 	
 /*
 Functions for finding instances
@@ -878,6 +955,9 @@ Functions for finding instances
 
 	
 	public function __get($name) {
+
+
+	
 		foreach (static::$relationships as $type => $relations) {
 			switch ($type) {
 				case "has_many":
