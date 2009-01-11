@@ -1,6 +1,3 @@
-INTRO
------
-
 Documentation is available "here":http://allseeing-i.com/FuzzyRecord.
 
 h3. What is FuzzyRecord?
@@ -44,6 +41,7 @@ h3. Coming soon
 * Better documentation
 * Write more tests
 * Hashed password fields
+* File fields (for local file storage)
 * Many to many relationships without a joining table model
 * Full-text searching
 * Date handling - these are left up the the db at the moment
