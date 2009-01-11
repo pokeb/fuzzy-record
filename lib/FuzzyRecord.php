@@ -96,14 +96,12 @@ CRUD Functions
 
 	
 		$properties_to_write = "";
-		$i=0;
 		foreach (static::$properties as $name => $info) {
-			$i++;
 			if (!in_array("file",$info)) {
-				$properties_to_write .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
-				if ($i<count(static::$properties)) {
+				if ($properties_to_write != "") {
 					$properties_to_write .= ", ";
 				}
+				$properties_to_write .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
 			}
 
 		}
@@ -112,14 +110,12 @@ CRUD Functions
 		$statement = DB::prepare($sql);
 
 		$properties_sql = "";
-		$i=0;
 		foreach (static::$properties as $name => $info) {
-			$i++;
 			if (!in_array("file",$info)) {
-				$properties_sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
-				if ($i<count(static::$properties)) {
+				if ($properties_sql != "") {
 					$properties_sql .= ", ";
 				}
+				$properties_sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark." = :$name";
 			}
 		}
 		
@@ -198,16 +194,14 @@ CRUD Functions
 		//Cache this stuff somewhere!!
 		$properties_sql = "";
 		$values_sql = "";
-		$i=0;
 		foreach (static::$properties as $name => $info) {
-			$i++;
 			if (!in_array("auto_increment",$info) && !in_array("file",$info)) {
-				$properties_sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark;
-				$values_sql .= ":$name";
-				if ($i<count(static::$properties)) {
+				if ($properties_sql != "") {
 					$properties_sql .= ",";
 					$values_sql .= ",";
 				}
+				$properties_sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark;
+				$values_sql .= ":$name";
 			}
 		}
 		$sql = "insert into ".static::$table." ($properties_sql) values ($values_sql)";
@@ -272,7 +266,7 @@ CRUD Functions
 				$class = get_class($this);
 					
 				if (!array_key_exists("save_path",$info)) {
-					throw new FuzzyRecordException("$class does not define a save_path for the File property $field");
+					throw new FuzzyRecordException("$class does not define a save_path for the File property $name");
 				}
 				$save_directory = $info['save_path'];
 				
@@ -460,7 +454,7 @@ CRUD Functions
 				$file_properties = static::$properties[$field];
 				if (!array_key_exists("save_path",$file_properties)) {
 					$class = get_called_class();
-					throw new FuzzyRecordException("$class does not define a save_path for the File property $name");
+					throw new FuzzyRecordException("$class does not define a save_path for the File property $field");
 				}
 				return new File($file_properties['save_path']."/".$value);
 	
