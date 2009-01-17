@@ -110,7 +110,7 @@ class TestHasMany extends FuzzyTest {
 		$user->logins = array($user_login1,$user_login2);
 		$user->save();
 	
-		$matches = $user->logins();
+		$matches = $user->logins;
 
 		FuzzyTest::assert_equal(count($matches),2,"Should find two logins here");
 

@@ -2,6 +2,7 @@
 
 class DBStatement {
 	
+	protected $sql;
 	protected $statement;
 	protected $db_connection;
 	
@@ -18,11 +19,17 @@ class DBStatement {
 	}
 	
 	public function execute($values=NULL) {
-		$this->statement->execute($values);
+		if ($this->statement->execute($values) === false) {
+			throw new FuzzyRecordException("Failed to execute prepared statement '$this->sql'");
+		}
 	}
 	
 	public function fetch_assoc() {
-		return $this->statement->fetch(PDO::FETCH_ASSOC);
+		$result = $this->statement->fetch(PDO::FETCH_ASSOC);
+		//if ($result === false) {
+		//	throw new FuzzyRecordException("Failed to fetch result of statement '$this->sql'");
+		//}
+		return $result;
 	}
 
 }

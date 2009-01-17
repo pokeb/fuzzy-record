@@ -27,6 +27,8 @@ class FuzzyRecord {
 	//protected $dependent_objects = array();
 	protected $objects_to_save_on_commit = array();
 	protected $objects_to_delete_on_commit = array();
+	
+	protected $parent_objects_for_relations = array();
 
 /*
 CRUD Functions
@@ -89,10 +91,11 @@ CRUD Functions
 		DB::start_implicit_transaction();
 	
 		$class = get_class($this);
-	
+		$this->set_foreign_keys_from_parent_objects();	
 		if (!$this->validate()) {
 			return false;
 		}
+		
 
 	
 		$properties_to_write = "";
@@ -183,10 +186,12 @@ CRUD Functions
 	public function write_new() {
 
 		DB::start_implicit_transaction();
-
+		$this->set_foreign_keys_from_parent_objects();
 		if (!$this->validate()) {
 			return false;
 		}
+		
+
 
 		$this->reset_sorters();
 	
@@ -251,8 +256,14 @@ CRUD Functions
 	}
 	
 	protected function write_files() {
+	
+	
 		foreach (static::$properties as $name => $info) {
 			if (in_array("file",$info)) {
+
+				if (!isset($this->$name)) {
+					continue;
+				}
 				$file = $this->$name;
 				
 				// See if file has been set
@@ -277,8 +288,6 @@ CRUD Functions
 				} else {
 					$file_name = $file->name();
 				}
-
-		
 				$file->write($save_directory."/".$file_name);
 				
 				$sql = "update ".static::$table." set ".DB::$db_quote_mark.$name.DB::$db_quote_mark."= :file_name where ".$this->where_for_original_keys();
@@ -367,12 +376,22 @@ CRUD Functions
 		$this->exists_in_database = false;
 	}
 	
-	public function commit_dependent_objects() {
+	protected function commit_dependent_objects() {
 		foreach ($this->objects_to_save_on_commit as $object) {
 			$object->save();
 		}
 		foreach ($this->objects_to_delete_on_commit as $object) {
 			$object->delete();
+		}
+	}
+	
+	protected function set_foreign_keys_from_parent_objects() {
+		foreach ($this->parent_objects_for_relations as $relationship => $object) {	
+			$parent_object_class = get_class($object);
+			foreach ($parent_object_class::primary_keys() as $key) {
+				$foreign_key = $relationship."_".$key;
+				$this->$foreign_key = $object->$key;
+			}
 		}
 	}
 	
@@ -455,6 +474,9 @@ CRUD Functions
 				if (!array_key_exists("save_path",$file_properties)) {
 					$class = get_called_class();
 					throw new FuzzyRecordException("$class does not define a save_path for the File property $field");
+				}
+				if ($value == "") {
+					return NULL;
 				}
 				return new File($file_properties['save_path']."/".$value);
 	
@@ -868,17 +890,35 @@ Functions for finding instances
 							}
 						} else {
 							$new_objects = $value;
-							
+			
 							foreach ($new_objects as $new_object) {
 								$child_class = get_class($new_object);
 								if ($child_class != $info['class']) {
-									throw new FuzzyRecordException("Attempted to add an object of the wrong type for ".get_class($this)." -> $name (got: ".$child_class::$table.", expected: $object");
+									print_r($info);
+									print_r($this);
+									throw new FuzzyRecordException("Attempted to add an object of the wrong type for ".get_class($this)."->$name (got: ".$child_class.", expected: ".$info['class'].")");
 								}
-								foreach (static::primary_keys() as $key) {
-									$foreign_key = static::$table."_".$key;
-									$new_object->$foreign_key = $this->$key;
-									$new_object->is_modified = true;
+								if (!isset($child_class::$relationships['belongs_to'])) {
+									throw new FuzzyRecordException("No belongs to relationship exists in class '$child_class' to connect it to '".get_class($this)."'");
 								}
+								$found_suitable_belongs_to_relationship = false;
+								foreach ($child_class::$relationships['belongs_to'] as $child_relationship_name => $child_info) {
+									if (!array_key_exists("class", $child_info)) {
+										throw new FuzzyRecordException("Improperly defined class '$child_class': all belongs to relationships must define a parent class");
+									}
+									if ($child_info['class'] == get_class($this)) {
+										
+										$new_object->parent_objects_for_relations[$child_relationship_name] = $this;
+										$new_object->is_modified = true;
+										$found_suitable_belongs_to_relationship = true;
+										
+										break;
+									}
+								}
+								if (!$found_suitable_belongs_to_relationship) {
+									throw new FuzzyRecordException("No belongs to relationship exists in class '$child_class' to connect it to '".get_class($this)."'");							
+								}
+
 								$this->objects_to_save_on_commit[] = $new_object;
 							}
 							$new_dependent_objects = array();
@@ -915,16 +955,18 @@ Functions for finding instances
 								throw new FuzzyRecordException("Attempted to set of the wrong type for ".static::$table." $name (got: ".$parent_class::$table.", expected: $object");
 							}
 						}
-						$keys = array();
-						$parent_class = $info['class'];
-						foreach ($parent_class::primary_keys() as $key) {
-							$foreign_key = $relationship_name."_".$key;
-							if (isset($parent_object)) {
-
-								$this->$foreign_key = $parent_object->$key;
-							} else {
+						if (isset($parent_object)) {
+							$this->parent_objects_for_relations[$relationship_name] = $parent_object;
+						} else {
+							if (!array_key_exists("class", $info)) {
+								throw new FuzzyRecordException("Improperly defined class '".get_class($this)."': all belongs to relationships must define a parent class");
+							}
+							$parent_class = $info["class"];
+							foreach ($parent_class::primary_keys() as $key) {
+								$foreign_key = $relationship_name."_".$key;
 								$this->$foreign_key = NULL;
 							}
+							
 						}
 						return;
 					}
