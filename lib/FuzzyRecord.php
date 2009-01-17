@@ -1035,6 +1035,10 @@ Functions for finding instances
 	protected function parent_object_for_belongs_to_relation($name) {
 
 		$class = get_class($this);
+		
+		if (isset($this->parent_objects_for_relations[$name])) {
+			return $this->parent_objects_for_relations[$name];
+		}
 	
 		if (!array_key_exists("belongs_to",static::$relationships)) {
 			throw new FuzzyRecordException("No belongs_to relations exists for ".static::$table);		
