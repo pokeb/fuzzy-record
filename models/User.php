@@ -7,7 +7,7 @@ It demonstrates the has_many relationship type, see the UserLogin and Page model
 
 class User extends FuzzyRecord {
 	
-	static protected $table = 'user';
+	static protected $table = 'fuzzy_user';
 	static protected $should_cache = false;
 	
 	static protected $properties = array(

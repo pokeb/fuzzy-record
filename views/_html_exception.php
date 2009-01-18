@@ -23,7 +23,7 @@ foreach ($exception->getTrace() as $trace_line) {
 	foreach ($trace_line['args'] as $argument) {
 ?>
 <li style="font-family: sans-serif; font-size: 1em; margin: 0 0 0 0; padding: 0; background: transparent; border: 0; list-style: inside decimal;">
-<?= is_object($argument) ? print_r($argument) : $argument; ?>
+<?= is_object($argument) || is_array($argument) ? print_r($argument) : $argument; ?>
 </li>
 <?php
 	}

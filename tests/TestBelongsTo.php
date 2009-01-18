@@ -10,11 +10,14 @@ class TestBelongsTo extends FuzzyTest {
 		
 		$user = new User();
 		$user->email = "ben@allseeing-i.com";
+		$user->first_name = "Ben";
+		$user->last_name = "Copsey";
 		$user->password = "secret";
 		$user->accepted_terms_and_conditions = true;
 		$user->registration_date = "2008-12-12";
 		$user->first_name = "Ben";
 		$user->save();
+
 		
 		$page1 = new Page();
 		$page1->title = "This is page 1";
@@ -22,9 +25,10 @@ class TestBelongsTo extends FuzzyTest {
 		$page1->body = "This is the content";
 		$page1->url = "page-1";
 		$page1->author = $user;
+		$page1->save();
 		FuzzyTest::assert_equal($page1->author_id,$user->id,"Author not set correctly");
 		
-		$page1->save();
+
 		
 		$user->delete();
 		

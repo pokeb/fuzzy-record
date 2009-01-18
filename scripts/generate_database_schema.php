@@ -16,7 +16,7 @@ foreach ($paths as $path) {
 		$obj = new $class();
 		if ($obj instanceof FuzzyRecord && $class != "FuzzyRecord") {
 			
-			echo $obj->create_table_sql()."<br />";
+			echo DB::create_table_sql_for_class(get_class($obj))."<br />";
 		}
 	}
 }

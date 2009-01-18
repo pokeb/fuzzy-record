@@ -32,6 +32,8 @@ class TestHasMany extends FuzzyTest {
 		$user_login->date = DateHelper::now();
 		$user_login->ip_address = "127.0.0.1";
 		$user_login->save();
+		
+		
 	
 		$matches = $user->logins();
 		FuzzyTest::assert_equal(count($matches),1,"Should find one login here");
@@ -105,7 +107,7 @@ class TestHasMany extends FuzzyTest {
 		$user_login2->ip_address = "127.0.0.1";
 		
 
-		$user->save();
+		//$user->save();
 		
 		$user->logins = array($user_login1,$user_login2);
 		$user->save();

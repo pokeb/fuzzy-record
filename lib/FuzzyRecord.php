@@ -30,6 +30,14 @@ class FuzzyRecord {
 	
 	protected $parent_objects_for_relations = array();
 
+	public static function table_name() {
+		return static::$table;
+	}
+	
+	public static function properties() {
+		return static::$properties;
+	}
+
 /*
 CRUD Functions
 */
@@ -57,7 +65,6 @@ CRUD Functions
 
 			// Attempt to read from the memory stores
 			if (!$this->read_from_memory_cache()) {
-		
 				// Attempt to read from the database
 				$sql = "select * from ".static::$table." where ".$this->where_for_keys();
 				$statement = DB::prepare($sql,0,1);
@@ -89,10 +96,11 @@ CRUD Functions
 	// Save an existing object to the database
 	public function write($cleanup_sorters=true) {
 		DB::start_implicit_transaction();
-	
+
 		$class = get_class($this);
 		$this->set_foreign_keys_from_parent_objects();	
 		if (!$this->validate()) {
+
 			return false;
 		}
 		
@@ -225,7 +233,7 @@ CRUD Functions
 		
 		foreach (static::primary_keys() as $key) {
 			if (in_array("auto_increment",static::$properties[$key])) {
-				$this->$key = DB::last_insert_id();
+				$this->$key = DB::last_insert_id(static::$table."_".$key."_seq");
 			}
 		}
 		
@@ -308,6 +316,7 @@ CRUD Functions
 		} else {
 			return $this->write();
 		}
+
 	}
 	
 	
@@ -481,7 +490,8 @@ CRUD Functions
 				return new File($file_properties['save_path']."/".$value);
 	
 			case "boolean":
-				if ($value === "0" || $value == "f") {
+				
+				if (empty($value) || $value === "0" || $value === "f") {
 					return false;			
 				}
 				return true;
@@ -511,7 +521,7 @@ CRUD Functions
 		}
 	}
 	
-	static protected function default_value_for($field) {
+	static public function default_value_for($field) {
 		if (!key_exists($field,static::$properties)) {
 			throw new FuzzyRecordException("Property '$field' not found");
 		}
@@ -523,11 +533,11 @@ CRUD Functions
 			case "boolean":
 				return false;
 			default:
-				return "";
+				return NULL;
 		}
 	}
 	
-	static protected function field_type($field) {
+	static public function field_type($field) {
 		if (!key_exists($field,static::$properties)) {
 			throw new FuzzyRecordException("Property '$field' not found");
 		}
@@ -582,61 +592,7 @@ CRUD Functions
 	}
 
 
-	static public function create_table_sql() {
-		$sql = "create table if not exists ".static::$table." (\r\n";
-		foreach (static::$properties as $name => $options) {
-			$sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark." ";
-			switch (static::field_type($name)) {
-				case "boolean":
-					$sql .= "tinyint(1) ";
-					break;
-				case "sorter":
-				case "integer":
-					$sql .= "int(12) unsigned ";
-					if (in_array("auto_increment",$options)) {
-						$sql .= "auto_increment ";
-					}
-					break;
-				case "email_address":
-				case "password":
-					$sql .= "varchar(255) ";
-					break;
-				case "date_with_time":
-					$sql .= "datetime ";
-					break;
-				case "date":
-					$sql .= "date ";
-					break;
-				case "time":
-					$sql .= "time ";
-					break;
-				case "varchar":
-					$length = 255;
-					if (key_exists("max_length",$options)) {
-						$length = $options["max_length"];
-					}
-					$sql .= "varchar($length) ";
-					break;
-				case "enum":
-					$sql .= "enum('".implode("','",$options['enum'])."') ";
-					break;
-				default:
-					$sql .= "text ";
-			}
-			$sql .= "not null ";
-			$default = static::default_value_for($name);
-			if ($default != "") {
-				$sql .= "default '".DB::escape($default)."'";
-			}
-			$sql .= ",\r\n";
-		}
-		
-		if (count(static::primary_keys()) > 0) {
-			$sql .= "primary key (".DB::$db_quote_mark.implode(DB::$db_quote_mark.",".DB::$db_quote_mark,static::primary_keys()).DB::$db_quote_mark.")";
-		}
-		$sql .= ") ENGINE=InnoDB default charset=utf8 collate=utf8_unicode_ci; ";
-		return $sql;
-	}
+
 	
 
 	
@@ -686,12 +642,30 @@ Functions for finding instances
 								if (!is_object($object)) {
 									throw new FuzzyRecordException("$called_class::$function_name : Invalid argument given - expected an object");
 								}
-								foreach (static::primary_keys() as $key) {
-									$foreign_key = static::$table."_".$key;
-									$args[$key] = $object->$foreign_key;
+								
+								$child_class = get_class($object);
+								if (!isset($child_class::$relationships['belongs_to'])) {
+									throw new FuzzyRecordException("No belongs to relationship exists in class '$child_class' to connect it to '".get_class($this)."'");
 								}
-							
-								$found_relationship = true;
+								
+								$found_suitable_belongs_to_relationship = false;
+								foreach ($child_class::$relationships['belongs_to'] as $child_relationship_name => $child_info) {
+									if (!array_key_exists("class", $child_info)) {
+										throw new FuzzyRecordException("Improperly defined class '$child_class': all belongs to relationships must define a parent class");
+									}
+									if ($child_info['class'] == $called_class) {	
+										foreach (static::primary_keys() as $key) {
+											$foreign_key = $child_relationship_name."_".$key;
+											$args[$key] = $object->$foreign_key;
+										}
+										$found_suitable_belongs_to_relationship = true;
+										
+										break;
+									}
+								}
+								if ($found_suitable_belongs_to_relationship) {
+									$found_relationship = true;
+								}
 							}
 							break;
 						case "belongs_to":
@@ -707,7 +681,7 @@ Functions for finding instances
 								}
 								$class = get_class($object);
 								foreach ($class::primary_keys() as $key) {
-									$foreign_key = $class::$table."_".$key;
+									$foreign_key = $relationship_name."_".$key;
 									$args[$foreign_key] = $object->$key;
 								}
 								$found_relationship = true;
@@ -1415,7 +1389,7 @@ Memcache functions
 		return MemoryStore::delete($this->identifier());
 	}
 	
-	static protected function primary_keys() {
+	static public function primary_keys() {
 		$primary_keys = array();
 		foreach (static::$properties as $name => $info) {
 			if (in_array("primary_key", $info)) {
@@ -1466,13 +1440,13 @@ Memcache functions
 /*
 DB type setup
 */
-	// Called once to setup db prefs and pre-process models
+	// Called once to setup db prefs
 	public static function init() {
 		switch (DB_TYPE) {
 			case "pdo-mysql":
 				require_once("lib/DB_MySQL.php");
 				break;
-			case "pdo-postgres":
+			case "pdo-pgsql":
 				require_once("lib/DB_PostgreSQL.php");
 				break;
 		}

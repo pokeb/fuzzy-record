@@ -7,7 +7,7 @@ In this example, files for the file property are saved with the id of this objec
 
 class CustomDocument extends FuzzyRecord {
 
-	static protected $table = 'document';
+	static protected $table = 'custom_document';
 
 	static protected $properties = array(
 		'id' => array('primary_key','auto_increment'),

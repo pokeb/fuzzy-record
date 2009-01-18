@@ -16,6 +16,6 @@
 <li><a href="run_all_tests.php">Run unit tests</a></li>
 </ul>
 
-<p>&copy; Ben Copsey / All-Seeing Interactive 2008 <a href="#">LICENSE (BSD)</a></p>
+<p>&copy; Ben Copsey / All-Seeing Interactive 2008 <a href="http://github.com/pokeb/fuzzy-record/tree/master/LICENSE">LICENSE (BSD)</a></p>
 </body>
 </html>

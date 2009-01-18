@@ -21,8 +21,6 @@ class DBBase {
 			throw new FuzzyRecordException("Error setting charset to UTF8: ".$e->getMessage());
 		}
 	}
-	
-	static protected function configure_charset() {}
 
 	static public function prepare($sql,$offset=-1,$num_rows=-1) {
 		static::db_connect();
@@ -41,7 +39,7 @@ class DBBase {
 		return new DBResult($result);
 	}
 	
-	static public function last_insert_id() {
+	static public function last_insert_id($sequence="") {
 		return static::$db_connection->lastInsertId();
 	}
 	
@@ -88,6 +86,103 @@ class DBBase {
 		if (isset(DBBase::$transaction_in_progress) && DBBase::$transaction_in_progress->is_implicit) {
 			DBBase::commit();
 		}
+	}
+	/*
+	static protected function db_field_type_for_field($object,$field) {
+		$class = get_class($object);
+		if (!key_exists($field,$class::$properties)) {
+			throw new FuzzyRecordException("Property '$field' not found");
+		}
+		$options = $class::$properties[$field];
+		$field_types = array("integer","boolean","date","time","varchar","text","enum");
+		foreach ($field_types as $type) {
+			if (in_array($type, $options) || key_exists($type,$options)) {
+				return $type;
+			}
+		}
+		if (in_array("bool",$options) || in_array("sorter",$options) || in_array("integer",$options)) {
+			return "int";
+		} elseif (in_array("file",$options) || in_array("email_address",$options)) {
+			return "varchar";	
+		} elseif (in_array("date_with_time",$options)) {
+			return "datetime";
+		} elseif (in_array("time_with_timezone",$options) || in_array("date_with_time_and_timezone",$options)) {
+			return "varchar";		
+		} elseif (in_array("auto_increment",$options)) {
+			return "integer";
+		} elseif (key_exists("max_length", $options) && $options['max_length'] < 256) {
+			return "varchar";
+		} else {
+			return "text";
+		}
+	}
+	*/
+	
+	static public function create_table_sql_for_class($class) {
+		$sql = "create table if not exists ".$class::table_name()." (\r\n";
+		foreach ($class::properties() as $name => $options) {
+			$sql .= DB::$db_quote_mark.$name.DB::$db_quote_mark." ";
+			switch ($class::field_type($name)) {
+				case "boolean":
+					$sql .= "tinyint(1) ";
+					break;
+				case "sorter":
+					$sql .= "int(12) unsigned ";
+					break;
+				case "integer":
+					$size = 12;
+					if (array_key_exists("size",$options)) {
+						$size = $options["size"]; 
+					}				
+					$sql .= "int($size) unsigned ";
+					if (in_array("auto_increment",$options)) {
+						$sql .= "auto_increment ";
+					}
+					break;
+				case "email_address":
+					$sql .= "varchar(255) ";
+					break;
+				case "date_with_time":
+					$sql .= "timestamp ";
+					break;
+				case "date":
+					$sql .= "date ";
+					break;
+				case "time":
+					$sql .= "time ";
+					break;
+				case "date_with_time_and_timezone":
+				case "time_with_timezone":
+					$sql .= "varchar(255) ";
+					break;
+				case "varchar":
+					$length = 255;
+					if (key_exists("max_length",$options)) {
+						$length = $options["max_length"];
+					}
+					$sql .= "varchar($length) ";
+					break;
+				case "enum":
+					$sql .= "enum('".implode("','",$options['enum'])."') ";
+					break;
+				default:
+					$sql .= "text ";
+			}
+			if (in_array("required",$options)) {
+				$sql .= "not null ";
+			}
+			$default = $class::default_value_for($name);
+			if ($default != "") {
+				$sql .= "default ".DB::escape($default);
+			}
+			$sql .= ",\r\n";
+		}
+		
+		if (count($class::primary_keys()) > 0) {
+			$sql .= "primary key (".DB::$db_quote_mark.implode(DB::$db_quote_mark.",".DB::$db_quote_mark,$class::primary_keys()).DB::$db_quote_mark.")";
+		}
+		$sql .= ") ENGINE=InnoDB default charset=utf8 collate=utf8_unicode_ci; ";
+		return $sql;
 	}
 
 }

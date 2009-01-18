@@ -26,9 +26,7 @@ class DBStatement {
 	
 	public function fetch_assoc() {
 		$result = $this->statement->fetch(PDO::FETCH_ASSOC);
-		//if ($result === false) {
-		//	throw new FuzzyRecordException("Failed to fetch result of statement '$this->sql'");
-		//}
+
 		return $result;
 	}
 
