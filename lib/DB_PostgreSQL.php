@@ -22,26 +22,6 @@ class DB extends DBBase {
 		return static::$db_connection->lastInsertId($sequence);
 	}
 	
-	/*
-	static protected function db_field_type_for_field($object,$field) {
-		$class = get_class($object);
-		if (!key_exists($field,$class::$properties)) {
-			throw new FuzzyRecordException("Property '$field' not found");
-		}
-		$options = $class::$properties[$field];
-		if (in_array("bool",$options)) {
-			return "boolean";
-		} elseif (in_array("date_with_time",$options)) {
-			return "timestamp without timezone";
-		} elseif (in_array("time_with_timezone",$options)) {
-			return "time with timezone";	
-		} elseif (in_array("date_with_time_and_timezone",$options)) {
-			return "timestamp with timezone";
-		}
-		return DBBase::db_field_type_for_field($object,$field);
-	}
-	*/
-	
 	static public function create_table_sql_for_class($class) {
 		$index_sql = "";
 		$sql = "create table ".$class::table_name()." (\r\n";
@@ -62,9 +42,6 @@ class DB extends DBBase {
 				case "integer":			
 					$sql .= "integer ";
 					if (in_array("auto_increment",$options)) {
-					
-
-
 						$index_sql .= "CREATE SEQUENCE ".$class::table_name()."_".$name."_seq INCREMENT BY 1 NO MAXVALUE NO MINVALUE CACHE 1;\r\n";
 						$index_sql .= "alter SEQUENCE ".$class::table_name()."_".$name."_seq owned by ".$class::table_name().".$name;\r\n";
 						$index_sql .= "alter table ".$class::table_name()." alter column $name set default nextval('".$class::table_name()."_".$name."_seq'::regclass);\r\n";

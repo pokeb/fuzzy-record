@@ -10,14 +10,14 @@ class SorterTest extends FuzzyTest {
 		
 		$page1 = new Page();
 		$page1->title = "This is page 1";
-		$page1->last_modified = DateHelper::now();
+		$page1->last_modified = new Date();
 		$page1->body = "This is the content";
 		$page1->url = "page-1";
 		$page1->save();
 	
 		$page2 = new Page();
 		$page2->title = "This is page 2";
-		$page2->last_modified = DateHelper::now();
+		$page2->last_modified = new Date();
 		$page2->body = "This is the content for page 2";
 		$page2->url = "page-2";
 		$page2->save();
@@ -25,7 +25,7 @@ class SorterTest extends FuzzyTest {
 	
 		$page3 = new Page();
 		$page3->title = "This is page 3";
-		$page3->last_modified = DateHelper::now();
+		$page3->last_modified = new Date();
 		$page3->body = "This is the content for page 3";
 		$page3->url = "page-3";
 		$page3->save();	

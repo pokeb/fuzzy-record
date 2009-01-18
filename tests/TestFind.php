@@ -12,7 +12,7 @@ class TestFind extends FuzzyTest {
 		$user->email = "ben@allseeing-i.com";
 		$user->password = "secret";
 		$user->accepted_terms_and_conditions = true;
-		$user->registration_date = "2008-12-12";
+		$user->registration_date = new Date();
 		$user->first_name = "Ben";
 		$user->last_name = "Copsey";
 		$user->save();
@@ -21,7 +21,7 @@ class TestFind extends FuzzyTest {
 		$user->email = "ben@acknet.co.uk";
 		$user->password = "secret";
 		$user->accepted_terms_and_conditions = true;
-		$user->registration_date = DateHelper::now();
+		$user->registration_date = new Date();
 		$user->first_name = "Ben";
 		$user->last_name = "Copsey";
 		$user->save();
@@ -30,7 +30,7 @@ class TestFind extends FuzzyTest {
 		$user->email = "ben@shared-space.net";
 		$user->password = "secret";
 		$user->accepted_terms_and_conditions = true;
-		$user->registration_date = DateHelper::now();
+		$user->registration_date = new Date();
 		$user->first_name = "Benjamus";
 		$user->last_name = "Copso";
 		$user->save();	

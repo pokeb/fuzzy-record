@@ -87,36 +87,6 @@ class DBBase {
 			DBBase::commit();
 		}
 	}
-	/*
-	static protected function db_field_type_for_field($object,$field) {
-		$class = get_class($object);
-		if (!key_exists($field,$class::$properties)) {
-			throw new FuzzyRecordException("Property '$field' not found");
-		}
-		$options = $class::$properties[$field];
-		$field_types = array("integer","boolean","date","time","varchar","text","enum");
-		foreach ($field_types as $type) {
-			if (in_array($type, $options) || key_exists($type,$options)) {
-				return $type;
-			}
-		}
-		if (in_array("bool",$options) || in_array("sorter",$options) || in_array("integer",$options)) {
-			return "int";
-		} elseif (in_array("file",$options) || in_array("email_address",$options)) {
-			return "varchar";	
-		} elseif (in_array("date_with_time",$options)) {
-			return "datetime";
-		} elseif (in_array("time_with_timezone",$options) || in_array("date_with_time_and_timezone",$options)) {
-			return "varchar";		
-		} elseif (in_array("auto_increment",$options)) {
-			return "integer";
-		} elseif (key_exists("max_length", $options) && $options['max_length'] < 256) {
-			return "varchar";
-		} else {
-			return "text";
-		}
-	}
-	*/
 	
 	static public function create_table_sql_for_class($class) {
 		$sql = "create table if not exists ".$class::table_name()." (\r\n";

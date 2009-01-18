@@ -200,11 +200,9 @@ CRUD Functions
 		}
 		
 
-
 		$this->reset_sorters();
 	
-	
-		//Cache this stuff somewhere!!
+		//Cache this stuff somewhere?
 		$properties_sql = "";
 		$values_sql = "";
 		foreach (static::$properties as $name => $info) {
@@ -488,7 +486,11 @@ CRUD Functions
 					return NULL;
 				}
 				return new File($file_properties['save_path']."/".$value);
-	
+				
+			case "date_with_time":
+			case "date_with_time_and_timezone":
+				return new Date($value);
+				
 			case "boolean":
 				
 				if (empty($value) || $value === "0" || $value === "f") {
@@ -502,6 +504,18 @@ CRUD Functions
 	
 	static protected function value_for_database($field,$value) {
 		switch (static::field_type($field)) {
+			case "date_with_time":
+				if (!$value) {
+					return NULL;
+				} elseif (!is_object($value) || get_class($value) != "Date") {
+					throw new FuzzyRecordException("The value of '$field' must be a date object");
+				}
+				return $value->db_date_with_time();
+			case "date_with_time_and_timezone":
+				if (!$value) {
+					return NULL;
+				}
+				return $value->db_date_with_time_and_timezone();
 			case "boolean":
 				if ($value === false) {
 					if (DB_TYPE == "postgresql") {
@@ -542,7 +556,7 @@ CRUD Functions
 			throw new FuzzyRecordException("Property '$field' not found");
 		}
 		$options = static::$properties[$field];
-		$field_types = array("file","integer","sorter","boolean","date_with_time","date","time","email_address","password","varchar","text","enum");
+		$field_types = array("file","integer","sorter","boolean","date_with_time","date_with_time_and_timezone","date","time","email_address","password","varchar","text","enum");
 		foreach ($field_types as $type) {
 			if (in_array($type, $options) || key_exists($type,$options)) {
 				return $type;

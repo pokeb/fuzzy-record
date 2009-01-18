@@ -13,7 +13,7 @@ class CustomDocument extends FuzzyRecord {
 		'id' => array('primary_key','auto_increment'),
 		'author_id' => array('integer'),
 		'file' => array('file','save_path' => DOCUMENT_SAVE_PATH),
-		'last_modified' => array('date_with_time','order_by_default')
+		'last_modified' => array('date_with_time_and_timezone','order_by_default')
 	);
 	
 	static protected $relationships = array(

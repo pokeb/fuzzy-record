@@ -26,7 +26,6 @@ class DBStatement {
 	
 	public function fetch_assoc() {
 		$result = $this->statement->fetch(PDO::FETCH_ASSOC);
-
 		return $result;
 	}
 

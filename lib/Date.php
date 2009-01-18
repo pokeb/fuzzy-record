@@ -51,6 +51,14 @@ class Date {
 		}
 	}
 	
+	public function db_date_with_time() {
+		return $this->year."-".$this->month."-".$this->day." ".$this->hour.":".$this->minute.":".$this->second;
+	}
+	
+	public function db_date_with_time_and_timezone() {
+		return $this->db_date_with_time().$this->timezone_offset;
+	}
+	
 	public static function now() {
 		return new Date("Y-m-d H:i:s");
 	}

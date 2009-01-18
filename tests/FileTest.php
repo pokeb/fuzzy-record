@@ -19,7 +19,7 @@ class FileTest extends FuzzyTest {
 		$user->email = "ben@allseeing-i.com";
 		$user->password = "secret";
 		$user->accepted_terms_and_conditions = true;
-		$user->registration_date = "2008-12-12";
+		$user->registration_date = new Date();
 		$user->first_name = "Ben";
 		$user->last_name = "Copsey";
 		$user->save();
@@ -62,7 +62,7 @@ class FileTest extends FuzzyTest {
 		$user = User::find_by_email("ben@allseeing-i.com");
 		$document = new Document();
 		$document->user = $user;
-		$document->last_modified = DateHelper::now();
+		$document->last_modified = new Date();
 		$document->file = $file;
 		$document->save();
 		FuzzyTest::assert_true($file->exists(),"File not written");
@@ -85,7 +85,7 @@ class FileTest extends FuzzyTest {
 		$user = User::find_by_email("ben@allseeing-i.com");
 		$document = new CustomDocument();
 		$document->user = $user;
-		$document->last_modified = DateHelper::now();
+		$document->last_modified = new Date();
 		$document->file = $file;
 		$document->save();
 		$result = file_exists(DOCUMENT_SAVE_PATH."/".$document->id.".info");

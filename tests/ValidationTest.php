@@ -28,7 +28,7 @@ class ValidationTest extends FuzzyTest {
 		$user->validate();
 		FuzzyTest::assert_false(key_exists("password",$user->validation_errors),"Password validation error erroneously set");		
 		
-		$user->registration_date = DateHelper::now();
+		$user->registration_date =new Date();
 		$user->validate();
 		FuzzyTest::assert_false(key_exists("registration_date",$user->validation_errors),"Required validation error erroneously set");
 		

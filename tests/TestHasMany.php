@@ -11,7 +11,7 @@ class TestHasMany extends FuzzyTest {
 		$user->email = "ben@allseeing-i.com";
 		$user->password = "secret";
 		$user->accepted_terms_and_conditions = true;
-		$user->registration_date = "2008-12-12";
+		$user->registration_date = new Date();
 		$user->first_name = "Ben";
 		$user->last_name = "Copsey";
 		$user->save();		
@@ -20,7 +20,7 @@ class TestHasMany extends FuzzyTest {
 		$user->email = "ben@acknet.co.uk";
 		$user->password = "secret";
 		$user->accepted_terms_and_conditions = true;
-		$user->registration_date = DateHelper::now();
+		$user->registration_date = new Date();
 		$user->first_name = "Ben";
 		$user->last_name = "Copsey";
 		$user->save();
@@ -29,7 +29,7 @@ class TestHasMany extends FuzzyTest {
 	
 		$user_login = new UserLogin();
 		$user_login->user_id = $user->id;
-		$user_login->date = DateHelper::now();
+		$user_login->date = new Date();
 		$user_login->ip_address = "127.0.0.1";
 		$user_login->save();
 		
@@ -40,7 +40,7 @@ class TestHasMany extends FuzzyTest {
 		
 		$user_login = new UserLogin();
 		$user_login->user_id = $user->id;
-		$user_login->date = DateHelper::now();
+		$user_login->date = new Date();
 		$user_login->ip_address = "127.0.0.1";
 		$user_login->save();
 		
@@ -81,7 +81,7 @@ class TestHasMany extends FuzzyTest {
 		
 		$user_login = new UserLogin();
 		$user_login->user = $user;
-		$user_login->date = DateHelper::now();
+		$user_login->date = new Date();
 		$user_login->ip_address = "127.0.0.1";
 		$user_login->save();
 		
@@ -99,11 +99,11 @@ class TestHasMany extends FuzzyTest {
 		UserLogin::delete_all();
 		
 		$user_login1 = new UserLogin();
-		$user_login1->date = DateHelper::now();
+		$user_login1->date = new Date();
 		$user_login1->ip_address = "127.0.0.1";
 		
 		$user_login2 = new UserLogin();
-		$user_login2->date = DateHelper::now();
+		$user_login2->date = new Date();
 		$user_login2->ip_address = "127.0.0.1";
 		
 

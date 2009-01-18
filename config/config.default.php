@@ -3,10 +3,11 @@
 define("SITE_PATH","/Users/ben/Sites/fuzzyrecord");
 
 define("DB_SERVER","127.0.0.1");
-define("DB_USER","root");
+define("DB_USER","");
 define("DB_PASSWORD","");
 define("DB_DATABASE","fuzzy-record-test");
-define("DB_TYPE","pdo-mysql");
+define("DB_TYPE","pdo-mysql"); // valid options are 'pdo-mysql' and 'pdo-pgsql'
+
 
 MemoryStore::$use_in_memory_store = true;
 MemoryStore::$use_memcache_store = false;
