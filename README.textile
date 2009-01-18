@@ -15,8 +15,8 @@ FuzzyRecord should be considered a work in progress. Some features are incomplet
 h3. Requirements
 
 * PHP 5.3+ (Earlier versions are NOT supported)
-* PDO-MySQL
-* MySQL database (Postgres + other databases coming soon!)
+* PDO-MySQL and / or PDO-PGSQL
+* MySQL or PostgreSQL database server
 
 h3. Optional
 
@@ -40,11 +40,10 @@ h3. Coming soon
 
 * Better documentation
 * Write more tests
-* Hashed password fields
 * Many to many relationships without a joining table model
 * Full-text searching
 * Support for multiple find clauses with the same operator + field (eg: find_all_by_email_like_and_email_like())
-* Postgres support, other databases (SQLite?)
+* Support for other databases (SQLite?)
 
 h3. Further future
 
